@@ -28,6 +28,7 @@ async function run(): Promise<void> {
     const projectPath = core.getInput('project_path')
     const platform = core.getInput('platform')
     const buildPath = core.getInput('build_path')
+    const force_arg = core.getBooleanInput('force')
     try {
       const {data} = await (await axios.get(downloadUrls)).data
       const urlList = data[cocosType] as CCDownloadType[]
@@ -43,9 +44,16 @@ async function run(): Promise<void> {
       )
       await extractZip(`${ccZipPath}`, './')
       await exec(`open ./CocosCreator.app`)
-      await exec(
-        `./CocosCreator.app/Contents/MacOS/CocosCreator --path ${projectPath} --build "platform=${platform};buildPath=${buildPath}"`
-      )
+
+      if (force_arg) {
+        await exec(
+          `./CocosCreator.app/Contents/MacOS/CocosCreator --force --path ${projectPath} --build "platform=${platform};buildPath=${buildPath}"`
+        )
+      } else {
+        await exec(
+          `./CocosCreator.app/Contents/MacOS/CocosCreator --path ${projectPath} --build "platform=${platform};buildPath=${buildPath}"`
+        )
+      }
       const artifactClient = artifact.create()
       const artifactName = 'cocos-build-package'
       const patterns = `${buildPath}/${platform}`
